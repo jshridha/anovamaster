@@ -5,9 +5,5 @@ if __name__ == '__main__':
     config = AnovaConfiguration()
     print("Setting up connection")
     my_anova = AnovaMaster(config)
-    import time
-    while True:
-        time.sleep(5)
-        print("Attempting to fetch status")
-        my_anova.fetch_status()
-        my_anova.dump_status()
+    print("Running run loop")
+    my_anova.run()

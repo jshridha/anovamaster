@@ -1,6 +1,8 @@
 import json
+import time
 
 from AnovaStatus import AnovaStatus
+from MQTTController import MQTTController
 from RESTAnovaController import RESTAnovaController
 
 valid_states = { "disconnected",
@@ -11,6 +13,7 @@ valid_states = { "disconnected",
 class AnovaMaster:
     def __init__(self, config):
         self._config = config
+        self._mqtt = MQTTController(config)
         self._status = AnovaStatus()
         self._anova = RESTAnovaController(self._config.get('anova', 'mac'), connect = False)
         self.anova_connect()
@@ -64,3 +67,11 @@ class AnovaMaster:
     def debug_log(self, str):
         if (self._config.get('anova', 'verbose')):
             print(str)
+
+    def run(self):
+        while True:
+            self.fetch_status()
+            json_status = json.dumps(self._status.__dict__, sort_keys=True)
+            self._mqtt.publish_message(self._config.get('mqtt', 'status_topic'),
+                                       json_status)
+            time.sleep(1)
