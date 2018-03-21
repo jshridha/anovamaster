@@ -3,6 +3,7 @@ import datetime
 import logging
 
 from pycirculate.anova import AnovaController
+import bluepy
 
 class RESTAnovaController(AnovaController):
     """

@@ -4,6 +4,7 @@ import time
 from AnovaStatus import AnovaStatus
 from MQTTController import MQTTController
 from RESTAnovaController import RESTAnovaController
+import bluepy
 
 valid_states = { "disconnected",
                  "stopped",
