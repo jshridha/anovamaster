@@ -14,7 +14,9 @@ valid_states = { "disconnected",
 class AnovaMaster:
     def __init__(self, config):
         self._config = config
-        self._mqtt = MQTTController(config)
+        self._mqtt = MQTTController(config = config,
+                                    run_callback = self.set_mode,
+                                    temp_callback = self.set_temp)
         self._status = AnovaStatus()
         self._anova = RESTAnovaController(self._config.get('anova', 'mac'), connect = False)
         self.anova_connect()
@@ -59,11 +61,28 @@ class AnovaMaster:
             except bluepy.btle.BTLEException:
                 print("Failed to receive state. Assuming we're disconnected.")
                 self._status.state = 'disconnected'
+            except TypeError:
+                # TypeError seems to be fairly frequently thrown
+                # by the AnovaController. Current best guess is
+                # as a result of comms failure. We'll assume the
+                # connection has failed for whatever reason. May
+                # be a better way of dealing with this though.
+                print("Connection has failed, trying again.")
+                self._anova.close()
+                self._status.state = 'disconnected'
 
     def dump_status(self):
         json_status = json.dumps(self._status.__dict__, sort_keys=True,
                                  indent=4)
         print(json_status)
+
+    def set_temp(self, temp):
+        # TODO: Set the temperature here
+        pass
+
+    def set_mode(self, temp):
+        # TODO: Start and stop here
+        pass
 
     def debug_log(self, str):
         if (self._config.get('anova', 'verbose')):
