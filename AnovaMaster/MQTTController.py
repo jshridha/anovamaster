@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 
 class MQTTController(object):
-    def __init__(self, config, run_callback, temp_callback):
+    def __init__(self, config, command_callback):
         def on_connect(client, userdata, flags, rc):
             print("MQTT connected with result code {}".format(str(rc)))
             client.subscribe(config.get('mqtt', 'run_command_topic'))
@@ -21,15 +21,15 @@ class MQTTController(object):
                                     self.temp_command_handler)
 
         self._client = client
-        self._run_callback = run_callback
-        self._temp_callback = temp_callback
+        self._command_callback = command_callback
 
     def run_command_handler(self, client, userdata, msg):
         print('run handler received {}: {}'.format(msg.topic, msg.payload.decode()))
-        self._run_callback(msg.payload.decode('utf-8'))
+        self._command_callback('run', msg.payload.decode('utf-8'))
 
     def temp_command_handler(self, client, userdata, msg):
         print('temp handler received {}: {}'.format(msg.topic, msg.payload.decode()))
+        self._command_callback('temp', msg.payload.decode('utf-8'))
 
     def generic_handler(self, client, userdata, msg):
         print('unknown message received {}: {}'.format(msg.topic, msg.payload.decode()))
