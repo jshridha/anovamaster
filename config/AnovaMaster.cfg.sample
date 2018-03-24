@@ -1,0 +1,17 @@
+[anova]
+# The MAC address for your Anova. Find it by running
+# `sudo hcitool lescan` from a command prompt.
+mac = 01:02:03:04:05:06
+
+[mqtt]
+# The host name for your MQTT server
+server = hass.local
+# Auth details for the MQTT server
+username = anova
+password = secretpassword
+# Topic that AnovaMaster will use for Anova status messages
+status_topic = anova/status
+# Topic AnovaMaster will subscribe to for start/stop commands
+run_command_topic = anova/command/run
+# Topic AnovaMaster will subscribe to for temperature setting commands
+temp_command_topic = anova/command/temp
