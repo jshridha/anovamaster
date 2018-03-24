@@ -1,3 +1,4 @@
+from threading import Lock
 import json
 import time
 
@@ -18,6 +19,7 @@ class AnovaMaster:
                                     run_callback = self.set_mode,
                                     temp_callback = self.set_temp)
         self._status = AnovaStatus()
+        self._btlock = Lock()
         self._anova = RESTAnovaController(self._config.get('anova', 'mac'), connect = False)
         self.anova_connect()
 
@@ -25,7 +27,8 @@ class AnovaMaster:
         if (self._status.state is "disconnected"):
             self.debug_log("Trying to connect to {}".format(self._config.get('anova', 'mac')))
             try:
-                self._anova.connect()
+                with self._btlock:
+                    self._anova.connect()
                 # We don't know status, but need to set it to something
                 # or fetch_status will get sad.
                 self._status.state = "stopped"
@@ -42,7 +45,8 @@ class AnovaMaster:
         self.anova_connect()
         if (self._status.state is not "disconnected"):
             try:
-                anova_status = self._anova.anova_status()
+                with self._btlock:
+                    anova_status = self._anova.anova_status()
                 if (anova_status in valid_states):
                     self._status.state = anova_status
                 else:
@@ -60,6 +64,8 @@ class AnovaMaster:
                 self._status.current_temp = self._anova.read_temp()
             except bluepy.btle.BTLEException:
                 print("Failed to receive state. Assuming we're disconnected.")
+                with self._btlock:
+                    self._anova.close()
                 self._status.state = 'disconnected'
             except TypeError:
                 # TypeError seems to be fairly frequently thrown
@@ -80,9 +86,17 @@ class AnovaMaster:
         # TODO: Set the temperature here
         pass
 
-    def set_mode(self, temp):
-        # TODO: Start and stop here
-        pass
+    def set_mode(self, mode):
+        if (mode == 'running'):
+            with self._btlock:
+                self._anova.start_anova()
+                time.sleep(3)
+        elif (mode == 'stopped'):
+            with self._btlock:
+                self._anova.stop_anova()
+                time.sleep(3)
+        else:
+            print('Unknown mode in set_mode: {}'.format(mode))
 
     def debug_log(self, str):
         if (self._config.get('anova', 'verbose')):

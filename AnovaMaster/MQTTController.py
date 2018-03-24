@@ -26,6 +26,7 @@ class MQTTController(object):
 
     def run_command_handler(self, client, userdata, msg):
         print('run handler received {}: {}'.format(msg.topic, msg.payload.decode()))
+        self._run_callback(msg.payload.decode('utf-8'))
 
     def temp_command_handler(self, client, userdata, msg):
         print('temp handler received {}: {}'.format(msg.topic, msg.payload.decode()))
