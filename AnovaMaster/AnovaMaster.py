@@ -96,31 +96,49 @@ class AnovaMaster:
         # just fetch status. Then rest a bit between runs.
         # Note: This should be THE ONLY place that actually talks
         # to the Anova.
+        # Every time through the loop we increment status_count
+        status_count = 0
+        # How long to sleep at the end of the loop (in seconds)
+        loop_delay = 0.1
+        # Send status after this many iterations through the loop
+        status_max = 50
         while True:
             next_command = None
             if (not self._command_queue.empty()):
                 try:
                     next_command = self._command_queue.get_nowait()
                 except Empty:
-                    next_command = ['status', None]
-            else:
-                next_command = ['status', None]
+                    # This shouldn't happen with only one queue
+                    # consumer, but catch it and move on if so.
+                    pass
 
-            if (next_command[0] == 'run'):
-                if (next_command[1] == 'running'):
-                    self._anova.start_anova()
-                elif (next_command[1] == 'stopped'):
-                    self._anova.stop_anova()
+            if (next_command is not None):
+                if (next_command[0] == 'run'):
+                    if (next_command[1] == 'running'):
+                        self._anova.start_anova()
+                    elif (next_command[1] == 'stopped'):
+                        self._anova.stop_anova()
+                    else:
+                        print('Unknown mode for run command: {}'.format(next_command[1]))
+                elif (next_command[0] == 'temp'):
+                    try:
+                        target_temp = float(next_command[1])
+                    except ValueError:
+                        # Couldn't parse it, don't care
+                        target_temp = 0
+                    # Bounds checking, yes these are hard coded
+                    # (and fahrenheit!) from the Anova website
+                    if (target_temp >= 77 and target_temp <= 210):
+                        self._anova.set_temp(target_temp)
                 else:
-                    print('Unknown mode for run command: {}'.format(next_command[1]))
-            elif (next_command[0] == 'temp'):
-                # TODO: Handle temperature here
-                pass
-            elif (next_command[0] == 'status'):
+                    print('Unknown command received: {}'.format(next_command[0]))
+
+            if (status_count >= status_max):
                 self.fetch_status()
                 json_status = json.dumps(self._status.__dict__, sort_keys=True)
                 self._mqtt.publish_message(self._config.get('mqtt', 'status_topic'), json_status)
+                status_count = 0
             else:
-                print('Unknown command received: {}'.format(next_command[0]))
+                status_count = status_count+1
 
-            time.sleep(1)
+            time.sleep(loop_delay)
