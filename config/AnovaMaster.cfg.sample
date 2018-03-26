@@ -3,7 +3,7 @@
 log_file = anovamaster.log
 # Log level. Valid levels in order of least to most verbose
 # are ERROR, WARNING, INFO, DEBUG
-log_level = INFO
+log_level = WARNING
 
 [anova]
 # The MAC address for your Anova. Find it by running
