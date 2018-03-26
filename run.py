@@ -1,9 +1,19 @@
+#!/usr/bin/env python
+
+import logging
+
 from AnovaMaster import AnovaConfiguration, AnovaMaster
 
-if __name__ == '__main__':
-    print("Importing config")
+def main():
+    logging.basicConfig(filename='anovamaster.log',
+                        format='%(asctime)s %(message)s',
+                        level=logging.INFO)
+    logging.info('Importing config')
     config = AnovaConfiguration()
-    print("Setting up connection")
+    logging.info('Setting up connection')
     my_anova = AnovaMaster(config)
-    print("Running run loop")
+    logging.info('Running main loop')
     my_anova.run()
+
+if __name__ == '__main__':
+    main()
