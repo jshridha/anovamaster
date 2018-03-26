@@ -15,5 +15,9 @@ class AnovaConfiguration(ConfigParser):
         self.add_defaults()
 
     def add_defaults(self):
-        if (not self.has_option('anova', 'verbose')):
-            self.set('anova', 'verbose', False)
+        if (not self.has_section('main')):
+            self.add_section('main')
+        if (not self.has_option('main', 'log_file')):
+            self.set('main', 'log_file', 'anovamaster.log')
+        if (not self.has_option('main', 'log_level')):
+            self.set('main', 'log_level', 'INFO')

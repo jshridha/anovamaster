@@ -1,3 +1,10 @@
+[main]
+# All output is written to the log file
+log_file = anovamaster.log
+# Log level. Valid levels in order of least to most verbose
+# are ERROR, WARNING, INFO, DEBUG
+log_level = INFO
+
 [anova]
 # The MAC address for your Anova. Find it by running
 # `sudo hcitool lescan` from a command prompt.
