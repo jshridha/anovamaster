@@ -42,7 +42,11 @@ class AnovaMaster:
     def fetch_status(self):
         # Update our internal state with the current status from the anova
         self.anova_connect()
-        if (self._status.state is not "disconnected"):
+        if (self._status.state is "disconnected"):
+            self._status.target_temp = 0
+            self._status.current_temp = 0
+            self.temp_unit = ''
+        else:
             try:
                 anova_status = self._anova.anova_status()
                 if (anova_status in valid_states):
