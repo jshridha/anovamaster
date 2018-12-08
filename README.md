@@ -83,8 +83,14 @@ The payload should be one of these strings
 
 ### Setting temperature
 
-The payload should be a float. AnovaMaster is currently hardcoded to
-only accept temperatures in Fahrenheit.
+The payload should be a float. AnovaMaster will set it as the desired
+temperature in whichever unit the Anova is currently set to. The
+temperature must be inside these limits, otherwise it will be discarded:
+
+|         | Celsius | Fahrenheit |
+|---------|---------|------------|
+| Maximum | 20      | 77         |
+| Minimum | 99      | 210        |
 
 ## Integration with Home Assistant
 
