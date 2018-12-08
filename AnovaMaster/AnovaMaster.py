@@ -128,9 +128,13 @@ class AnovaMaster:
                         # Couldn't parse it, don't care
                         target_temp = 0
                     # Bounds checking, yes these are hard coded
-                    # (and fahrenheit!) from the Anova website
-                    if (target_temp >= 77 and target_temp <= 210):
-                        self._anova.set_temp(target_temp)
+                    # (based on fahrenheit or Celscius!) from the Anova website
+                    if self._status.temp_unit == "f":
+                        if (target_temp >= 77 and target_temp <= 210):
+                            self._anova.set_temp(target_temp)
+                    elif self._status.temp_unit == "c":
+                        if (target_temp >= 20 and target_temp <= 99):
+                            self._anova.set_temp(target_temp)
                 else:
                     logging.error('Unknown command received: {}'.format(next_command[0]))
 
