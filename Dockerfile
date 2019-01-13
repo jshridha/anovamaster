@@ -12,4 +12,6 @@ ADD . .
 RUN pip install -r requirements.txt && \
     rm -rv /root/.cache/pip
 
+RUN chmod +x ./start.sh
+	
 CMD ["./start.sh"]
