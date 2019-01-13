@@ -1,0 +1,11 @@
+[Unit]
+Description=Anova
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/home/pi/anova/venv/bin/python /home/pi/anova/run.py
+
+[Install]
+WantedBy=multi-user.target
+

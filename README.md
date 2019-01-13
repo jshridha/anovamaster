@@ -113,4 +113,9 @@ this script:
         mode_command_topic: anova/command/run
         temperature_command_topic: anova/command/temp
 		
+```
+sudo cp anova.service /lib/systemd/system/
+sudo systemctl enable anova.service
+sudo systemctl start anova.service
+```
 
