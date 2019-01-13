@@ -13,7 +13,7 @@ mac = 01:02:03:04:05:06
 [mqtt]
 # The host name for your MQTT server
 server = hass.local
-port=1183
+port = 1183
 # Auth details for the MQTT server
 username = anova
 password = secretpassword
