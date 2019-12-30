@@ -14,7 +14,7 @@ class MQTTController(object):
                                password=config.get('mqtt', 'password'))
         client.on_connect = on_connect
         client.loop_start()
-        client.connect(host=config.get('mqtt', 'server'), port=config.get("mqtt", "port") or 1883)
+        client.connect(host=config.get('mqtt', 'server'), port=int(config.get("mqtt", "port")) or 1883)
         client.publish('kitchenpi/status', 'connected')
         client.on_message = self.generic_handler
         client.message_callback_add(config.get('mqtt', 'run_command_topic'),
