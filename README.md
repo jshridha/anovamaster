@@ -133,9 +133,8 @@ this script:
       - platform: mqtt
         name: Sous vide
         modes:
-          - disconnected
-          - stopped
-          - running
+          - "off"
+          - heat
         current_temperature_topic: anova/status
         current_temperature_template: "{{ value_json.current_temp }}"
         temperature_state_topic: anova/status
@@ -144,23 +143,27 @@ this script:
         mode_state_template: "{{ value_json.state }}"
         mode_command_topic: anova/command/run
         temperature_command_topic: anova/command/temp
+        send_if_off: true
+        min_temp: 30
+        max_temp: 250
+        temp_step: 0.5
 
 	sensor:
       - platform: mqtt
         name: Sous vide
         state_topic: anova/timer
-        value_template: "{{ (((value_json.timer | int) * 60) - 3600) | timestamp_custom('%H:%M') }}"
+        value_template: "{{ (value_json.timer | int) }}"
         icon: 'mdi:timer'
 
 	switch:
       - platform: mqtt
-        name: Sous vide
+        name: Sous Vide Timer
         state_topic: anova/timer
         command_topic: anova/command/timer_run
-        payload_on: 'running'
-        payload_off: 'stopped'
-        state_on: 'running'
-        state_off: 'stopped'
+        payload_on: heat
+        payload_off: "off"
+        state_on: heat
+        state_off: "off"
         optimistic: false
         retain: true
         value_template: "{{ value_json.timer_state }}"

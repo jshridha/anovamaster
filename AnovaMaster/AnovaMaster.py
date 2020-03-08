@@ -9,8 +9,8 @@ from RESTAnovaController import RESTAnovaController
 import bluepy
 
 valid_states = { "disconnected",
-                 "stopped",
-                 "running"
+                 "off",
+                 "heat"
 }
 
 class AnovaMaster:
@@ -52,6 +52,10 @@ class AnovaMaster:
         else:
             try:
                 anova_status = self._anova.anova_status()
+                if anova_status == "stopped":
+                    anova_status = "off"
+                elif anova_status == "running":
+                    anova_status = "heat"
                 if (anova_status in valid_states):
                     self._status.state = anova_status
                 else:
@@ -69,7 +73,7 @@ class AnovaMaster:
                 self._status.current_temp = self._anova.read_temp()
                 timer = self._anova.read_timer()
                 self._timer_status.timer = timer.split(' ')[0]
-                self._timer_status.timer_state = 'running' if (timer.split(' ')[1] == 'running') else 'stopped'
+                self._timer_status.timer_state = 'heat' if (timer.split(' ')[1] == 'running') else 'off'
             except bluepy.btle.BTLEException:
                 logging.error('Error retrieving state, disconnecting.')
                 self._anova.close()
@@ -120,10 +124,11 @@ class AnovaMaster:
                     pass
 
             if (next_command is not None):
+                logging.debug("Next Command: {}".format(next_command))
                 if (next_command[0] == 'run'):
-                    if (next_command[1] == 'running'):
+                    if (next_command[1] == 'heat'):
                         self._anova.start_anova()
-                    elif (next_command[1] == 'stopped'):
+                    elif (next_command[1] == 'off'):
                         self._anova.stop_anova()
                     else:
                         logging.warning('Unknown mode for run command: {}'.format(next_command[1]))
@@ -142,9 +147,9 @@ class AnovaMaster:
                         if (target_temp >= 20 and target_temp <= 99):
                             self._anova.set_temp(target_temp)
                 elif (next_command[0] == 'timer_run'):
-                    if (next_command[1] == 'running'):
+                    if (next_command[1] == 'heat'):
                         self._anova.start_timer()
-                    elif (next_command[1] == 'stopped'):
+                    elif (next_command[1] == 'off'):
                         self._anova.stop_timer()
                     else:
                         logging.warning('Unknown mode for timer_state command: {}'.format(next_command[1]))
@@ -154,7 +159,7 @@ class AnovaMaster:
                     except ValueError:
                         # Couldn't parse it, don't care
                         target_timer = 0
-                    selv._anova.set_timer(target_timer)
+                    self._anova.set_timer(target_timer)
                 else:
                     logging.error('Unknown command received: {}'.format(next_command[0]))
 
