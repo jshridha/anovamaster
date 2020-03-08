@@ -3,7 +3,7 @@ import json
 import logging
 import time
 
-from AnovaStatus import AnovaStatus
+from AnovaStatus import AnovaStatus, AnovaTimerStatus
 from MQTTController import MQTTController
 from RESTAnovaController import RESTAnovaController
 import bluepy
@@ -19,6 +19,7 @@ class AnovaMaster:
         self._mqtt = MQTTController(config = config,
                                     command_callback = self.mqtt_command)
         self._status = AnovaStatus()
+        self._timer_status = AnovaTimerStatus()
         self._command_queue = Queue(maxsize=20)
         self._anova = RESTAnovaController(self._config.get('anova', 'mac'), connect = False)
         self.anova_connect()
@@ -45,6 +46,8 @@ class AnovaMaster:
         if (self._status.state is "disconnected"):
             self._status.target_temp = 0
             self._status.current_temp = 0
+            self._timer_status.timer = 0
+            self._timer_status.timer_state = False
             self.temp_unit = ''
         else:
             try:
@@ -64,6 +67,9 @@ class AnovaMaster:
                     raise StatusException(anova_unit)
                 self._status.target_temp = self._anova.read_set_temp()
                 self._status.current_temp = self._anova.read_temp()
+                timer = self._anova.read_timer()
+                self._timer_status.timer = timer.split(' ')[0]
+                self._timer_status.timer_state = 'running' if (timer.split(' ')[1] == 'running') else 'stopped'
             except bluepy.btle.BTLEException:
                 logging.error('Error retrieving state, disconnecting.')
                 self._anova.close()
@@ -135,13 +141,30 @@ class AnovaMaster:
                     elif self._status.temp_unit == "c":
                         if (target_temp >= 20 and target_temp <= 99):
                             self._anova.set_temp(target_temp)
+                elif (next_command[0] == 'timer_run'):
+                    if (next_command[1] == 'running'):
+                        self._anova.start_timer()
+                    elif (next_command[1] == 'stopped'):
+                        self._anova.stop_timer()
+                    else:
+                        logging.warning('Unknown mode for timer_state command: {}'.format(next_command[1]))
+                elif (next_command[0] == 'timer'):
+                    try:
+                        target_timer = int(next_command[1])
+                    except ValueError:
+                        # Couldn't parse it, don't care
+                        target_timer = 0
+                    selv._anova.set_timer(target_timer)
                 else:
                     logging.error('Unknown command received: {}'.format(next_command[0]))
 
             if (status_count >= status_max):
                 self.fetch_status()
                 json_status = json.dumps(self._status.__dict__, sort_keys=True)
+                json_timer_status = json.dumps(self._timer_status.__dict__, sort_keys=True)
+
                 self._mqtt.publish_message(self._config.get('mqtt', 'status_topic'), json_status)
+                self._mqtt.publish_message(self._config.get('mqtt', 'status_timer'), json_timer_status)
                 status_count = 0
             else:
                 status_count = status_count+1

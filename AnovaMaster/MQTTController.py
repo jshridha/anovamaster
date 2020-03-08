@@ -8,6 +8,8 @@ class MQTTController(object):
             logging.info('MQTT connected with result code {}'.format(str(rc)))
             client.subscribe(config.get('mqtt', 'run_command_topic'))
             client.subscribe(config.get('mqtt', 'temp_command_topic'))
+            client.subscribe(config.get('mqtt', 'timer_run_command_topic'))
+            client.subscribe(config.get('mqtt', 'timer_command_topic'))
 
         client = mqtt.Client(client_id="anovapi")
         client.username_pw_set(username=config.get('mqtt', 'username'),
@@ -21,6 +23,10 @@ class MQTTController(object):
                                     self.run_command_handler)
         client.message_callback_add(config.get('mqtt', 'temp_command_topic'),
                                     self.temp_command_handler)
+        client.message_callback_add(config.get('mqtt', 'timer_run_command_topic'),
+                                    self.timer_run_command_handler)
+        client.message_callback_add(config.get('mqtt', 'timer_command_topic'),
+                                    self.timer_command_handler)
 
         self._client = client
         self._command_callback = command_callback
@@ -32,6 +38,14 @@ class MQTTController(object):
     def temp_command_handler(self, client, userdata, msg):
         logging.debug('MQTT temp handler received {}: {}'.format(msg.topic, msg.payload.decode()))
         self._command_callback('temp', msg.payload.decode('utf-8'))
+
+    def timer_run_command_handler(self, client, userdata, msg):
+        logging.debug('MQTT temp handler received {}: {}'.format(msg.topic, msg.payload.decode()))
+        self._command_callback('timer_run', msg.payload.decode('utf-8'))
+
+    def timer_command_handler(self, client, userdata, msg):
+        logging.debug('MQTT temp handler received {}: {}'.format(msg.topic, msg.payload.decode()))
+        self._command_callback('timer', msg.payload.decode('utf-8'))
 
     def generic_handler(self, client, userdata, msg):
         logging.warning('MQTT unknown message received {}: {}'.format(msg.topic, msg.payload.decode()))

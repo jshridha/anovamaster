@@ -29,13 +29,13 @@ this running on a Raspberry Pi Zero W, though.
 * Install dependencies
 
 		$ pip install -r requirements.txt
-		
+
 * Create a configuration file. Refer to comments in the config file for
   how to set it up.
 
 		$ cp config/AnovaMaster.cfg.sample config/AnovaMaster.cfg
 		$ nano config/AnovaMaster.cfg
-		
+
 * Run it.
 
 		$ ./run.py
@@ -68,6 +68,27 @@ Temperatures are represented as a string, accurate to one decimal place. The
 * "C"
 * "F"
 
+## Timer status packet
+
+AnovaMaster broadcasts regular timer status messages to MQTT. The payload of these
+is a JSON packet with the following format:
+
+        {
+		 "timer": "1440",
+		 "timer_state": "running"
+	    }
+
+### timer_state
+
+The state field will be one of
+
+* "stopped"
+* "running"
+
+### timer
+
+timer is the current value in minutes.
+
 ## Sending commands
 
 AnovaMaster currently supports turning the Anova on/off, and setting the
@@ -92,6 +113,17 @@ temperature must be inside these limits, otherwise it will be discarded:
 | Maximum | 20      | 77         |
 | Minimum | 99      | 210        |
 
+### Setting timer
+
+The payload should be an integer. AnovaMaster will set it as the desired timer
+
+### Setting timer state
+
+The payload should be one of these strings
+
+* "stopped" - turn the timer off
+* "running" - turn the timer on
+
 ## Integration with Home Assistant
 
 I'm using the following in my `configuration.yaml` to integrate with
@@ -112,10 +144,30 @@ this script:
         mode_state_template: "{{ value_json.state }}"
         mode_command_topic: anova/command/run
         temperature_command_topic: anova/command/temp
-		
+
+	sensor:
+      - platform: mqtt
+        name: Sous vide
+        state_topic: anova/timer
+        value_template: "{{ (((value_json.timer | int) * 60) - 3600) | timestamp_custom('%H:%M') }}"
+        icon: 'mdi:timer'
+
+	switch:
+      - platform: mqtt
+        name: Sous vide
+        state_topic: anova/timer
+        command_topic: anova/command/timer_run
+        payload_on: 'running'
+        payload_off: 'stopped'
+        state_on: 'running'
+        state_off: 'stopped'
+        optimistic: false
+        retain: true
+        value_template: "{{ value_json.timer_state }}"
+        icon: 'mdi:timer'
+
 ```
 sudo cp anova.service /lib/systemd/system/
 sudo systemctl enable anova.service
 sudo systemctl start anova.service
 ```
-
