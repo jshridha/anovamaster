@@ -1,11 +1,19 @@
-from Queue import Queue, Empty
+import sys
+
+if sys.version_info[0] < 3:
+    from Queue import Queue, Empty
+else:
+    from queue import Queue, Empty
+
 import json
 import logging
 import time
 
-from AnovaStatus import AnovaStatus, AnovaTimerStatus
-from MQTTController import MQTTController
-from RESTAnovaController import RESTAnovaController
+from .AnovaStatus import AnovaStatus, AnovaTimerStatus
+from .MQTTController import MQTTController
+from .RESTAnovaController import RESTAnovaController
+from .StatusException import StatusException
+
 import bluepy
 
 valid_states = { "disconnected",
