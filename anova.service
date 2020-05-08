@@ -4,7 +4,8 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/home/pi/anova/venv/bin/python /home/pi/anova/run.py
+WorkingDirectory=/home/pi/anovamaster
+ExecStart=/home/pi/anovamaster/venv/bin/python /home/pi/anovamaster/run.py
 
 [Install]
 WantedBy=multi-user.target
