@@ -1,10 +1,10 @@
 FROM python:2.7.18-slim-buster
 
 WORKDIR /usr/src/Anova
-COPY AnovaMaster /usr/src/Anova/AnovaMaster
-COPY config /usr/src/Anova/config
-COPY requirements.txt /usr/src/Anova/requirements.txt
-COPY run.py /usr/src/Anova/run.py
+COPY AnovaMaster/ /usr/src/Anova/AnovaMaster/
+COPY config/ /usr/src/Anova/config/
+COPY requirements.txt /usr/src/Anova/
+COPY run.py /usr/src/Anova/
 
 RUN apt-get update && apt-get install -y \
     bluez \
