@@ -1,3 +1,4 @@
-bluepy==1.1.4
+bluepy==1.3.0
+#pycirculate==0.1.1a1
+paho-mqtt==1.5.0
 git+https://github.com/CY8s/pycirculate.git#egg=pycirculate
-paho-mqtt==1.3.1
