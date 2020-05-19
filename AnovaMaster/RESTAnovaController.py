@@ -1,6 +1,7 @@
 from threading import Timer
 import datetime
 import logging
+import sys
 
 from pycirculate.anova import AnovaController
 import bluepy
@@ -40,12 +41,20 @@ class RESTAnovaController(AnovaController):
         if datetime.datetime.now() > timeout_at:
             self.close()
             self.logger.info('Timeout bluetooth connection. Last command ran at {0}'.format(self.last_command_at))
+            sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            sys.stdout.write('Timeout bluetooth connection. Last command ran at {0}'.format(self.last_command_at))
+            sys.stdout.write('\n')
+
         else:
             self._timeout_timer = Timer(self.TIMEOUT_HEARTBEAT, lambda: self.timeout())
             self._timeout_timer.setDaemon(True)
             self._timeout_timer.start()
             self.logger.debug('Start connection timeout monitor. Will idle timeout in {0} seconds.'.format(
                 (timeout_at - datetime.datetime.now()).total_seconds())) 
+            sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            sys.stdout.write('Start connection timeout monitor. Will idle timeout in {0} seconds.'.format(
+                (timeout_at - datetime.datetime.now()).total_seconds())) 
+            sys.stdout.write('\n')
 
     def connect(self):
         super(RESTAnovaController, self).connect()

@@ -8,6 +8,7 @@ else:
 import json
 import logging
 import time
+import datetime
 
 from .AnovaStatus import AnovaStatus, AnovaTimerStatus
 from .MQTTController import MQTTController
@@ -35,6 +36,9 @@ class AnovaMaster:
     def anova_connect(self):
         if (self._status.state is "disconnected"):
             logging.debug('Trying to connect to {}'.format(self._config.get('anova', 'mac')))
+            sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            sys.stdout.write('Trying to connect to {}'.format(self._config.get('anova', 'mac')))
+            sys.stdout.write('\n')
             try:
                 self._anova.connect()
                 # We don't know status, but need to set it to something
@@ -44,6 +48,8 @@ class AnovaMaster:
             except bluepy.btle.BTLEException:
                 # Assuming this was because the device is off / out of range
                 logging.info('Can\'t connect to Anova. Is it on and in range?')
+                sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                sys.stdout.write('Can\'t connect to Anova. Is it on and in range?\n')
                 self._status.state = "disconnected"
         else:
             logging.debug('Already connected, skipping connect()')
@@ -68,6 +74,9 @@ class AnovaMaster:
                     self._status.state = anova_status
                 else:
                     logging.warning('Unknown status: '.format(anova_status))
+                    sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    sys.stdout.write('Unknown status: '.format(anova_status))
+                    sys.stdout.write('\n')
                     raise StatusException(anova_status)
 
                 anova_unit = self._anova.read_unit()
@@ -75,6 +84,9 @@ class AnovaMaster:
                     self._status.temp_unit = anova_unit
                 else:
                     logging.warning('Unknown temperature unit: '.format(anova_unit))
+                    sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    sys.stdout.write('Unknown temperature unit: '.format(anova_unit))
+                    sys.stdout.write('\n')
                     # TODO: Better custom exceptions?
                     raise StatusException(anova_unit)
                 self._status.target_temp = self._anova.read_set_temp()
@@ -84,6 +96,7 @@ class AnovaMaster:
                 self._timer_status.timer_state = 'heat' if (timer.split(' ')[1] == 'running') else 'off'
             except bluepy.btle.BTLEException:
                 logging.error('Error retrieving state, disconnecting.')
+                sys.stdout.write('%s Error retrieving state, disconnecting.\n'% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 self._anova.close()
                 self._status.state = 'disconnected'
             except TypeError:
@@ -93,6 +106,7 @@ class AnovaMaster:
                 # connection has failed for whatever reason. May
                 # be a better way of dealing with this though.
                 logging.info('Connection error (TypeError), disconnecting.')
+                sys.stdout.write('%s Connection error (TypeError), disconnecting.\n'% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 self._anova.close()
                 self._status.state = 'disconnected'
 
@@ -133,6 +147,9 @@ class AnovaMaster:
 
             if (next_command is not None):
                 logging.debug("Next Command: {}".format(next_command))
+                sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                sys.stdout.write("Next Command: {}".format(next_command))
+                sys.stdout.write('\n')
                 if (next_command[0] == 'run'):
                     if (next_command[1] == 'heat'):
                         self._anova.start_anova()
@@ -140,6 +157,9 @@ class AnovaMaster:
                         self._anova.stop_anova()
                     else:
                         logging.warning('Unknown mode for run command: {}'.format(next_command[1]))
+                        sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                        sys.stdout.write('Unknown mode for run command: {}'.format(next_command[1]))
+                        sys.stdout.write('\n')
                 elif (next_command[0] == 'temp'):
                     try:
                         target_temp = float(next_command[1])
@@ -156,11 +176,15 @@ class AnovaMaster:
                             self._anova.set_temp(target_temp)
                 elif (next_command[0] == 'timer_run'):
                     if (next_command[1] == 'heat'):
+                        self._anova.start_anova() # Anova must be started before starting timer so forcing start to be safe
                         self._anova.start_timer()
                     elif (next_command[1] == 'off'):
                         self._anova.stop_timer()
                     else:
                         logging.warning('Unknown mode for timer_state command: {}'.format(next_command[1]))
+                        sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                        sys.stdout.write('Unknown mode for timer_state command: {}'.format(next_command[1]))
+                        sys.stdout.write('\n')
                 elif (next_command[0] == 'timer'):
                     try:
                         target_timer = int(next_command[1])
@@ -170,6 +194,9 @@ class AnovaMaster:
                     self._anova.set_timer(target_timer)
                 else:
                     logging.error('Unknown command received: {}'.format(next_command[0]))
+                    sys.stdout.write('%s '% datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    sys.stdout.write('Unknown command received: {}'.format(next_command[0]))
+                    sys.stdout.write('\n')
 
             if (status_count >= status_max):
                 self.fetch_status()
