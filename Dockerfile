@@ -1,17 +1,22 @@
-FROM python:2
+FROM python:2.7.18-slim-buster
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/Anova
+COPY AnovaMaster/ /usr/src/Anova/AnovaMaster/
+COPY config/ /usr/src/Anova/config/
+COPY requirements.txt /usr/src/Anova/
+COPY run.py /usr/src/Anova/
 
 RUN apt-get update && apt-get install -y \
     bluez \
+    python-pip \
+    virtualenv \
+    git \
     libglib2.0-dev && \
     rm -rf /var/lib/apt/lists/*
 
-ADD . .
 
-RUN pip install -r requirements.txt && \
-    rm -rv /root/.cache/pip
+# Copy in docker scripts to root of container...
+COPY dockerscripts/ /
 
-RUN chmod +x ./start.sh
-	
-CMD ["./start.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/cmd.sh"]
